@@ -18,34 +18,65 @@ def parse_xml(file_contents):
 	return elements
 
 
-def create_table(objects, filename):
-    count = 0
-    tables = get_existing_tables()
-    for table in tables:
-        if table == filename:
-            count += 1
-    if count == 0:
-        connect = sqlite3.connect(DB_NAME)
-        cursor = connect.cursor()
-        cursor.execute(f'''CREATE TABLE IF NOT EXISTS {filename}(
-                          id TEXT PRIMARY KEY,
-                          value TEXT,
-                          source TEXT,
-                          target TEXT,
-                          description TEXT, 
-                          type TEXT)''')
+def create_xml_files_table(file_name):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
 
-        connect.commit()
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS xml_files (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        file_name TEXT
+    )
+    ''')
 
-        for obj in objects:
-            if obj['source'] is not None and obj['target'] is not None and len(obj['id']) > 2:
-                cursor.execute(
-                    f"INSERT INTO {filename} (id, value, source, target, description, type) VALUES (?, ?, ?, ?, ?, ?)",
-                    (obj['id'], obj['value'], obj['source'], obj['target'], '', 'relationship'))
-            elif obj['source'] is None and obj['target'] is None and len(obj['id']) > 2:
-                cursor.execute(
-                    f"INSERT INTO {filename} (id, value, source, target, description, type) VALUES (?, ?, ?, ?, ?, ?)",
-                    (obj['id'], obj['value'], obj['source'], obj['target'], '', 'object'))
-        connect.commit()
-    else:
-        print('')
+    cursor.execute('''
+    INSERT INTO xml_files (file_name) VALUES (?)
+    ''', (file_name,))
+
+    conn.commit()
+
+    cursor.execute('SELECT last_insert_rowid()')  # Получение id последней вставленной записи
+    rowid = cursor.fetchone()[0]
+
+    conn.close()
+
+    return rowid
+
+
+def create_xml_file_info_table(id, value, source, target, description, type, file_id):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    # Создание таблицы xml_file_info
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS xml_file_info (
+        id TEXT,
+        value TEXT,
+        source TEXT,
+        target TEXT,
+        description TEXT,
+        type TEXT,
+        xml_file_id INTEGER,
+        FOREIGN KEY (xml_file_id) REFERENCES xml_files(id)
+    )
+    ''')
+
+    # Вставка данных в таблицу xml_file_info
+    cursor.execute('''
+    INSERT INTO xml_file_info (id, value, source, target, description, type, xml_file_id) VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (id, value, source, target, description, type, file_id))  # Предполагается, что id таблицы xml_files совпадает с переданным id
+
+    conn.commit()
+    conn.close()
+
+
+def get_all_xml_files():
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT * FROM xml_files')
+    rows = cursor.fetchall()
+
+    conn.close()
+
+    return rows

@@ -7,7 +7,8 @@ import {
 } from "react-router-dom";
 import './index.css'
 import { AppLayout } from './components/AppLayout.jsx';
-import { Table } from './components/Table/Table.jsx';
+import { TablePage } from './components/TablePage/TablePage.jsx';
+import { FilePage } from './components/FilePage/FilePage.jsx';
 
 const router = createBrowserRouter([
   {
@@ -21,7 +22,11 @@ const router = createBrowserRouter([
       },
       {
         path: "/diagrams-table",
-        element: <Table />,
+        element: <TablePage />,
+      },
+      {
+        path: "/file/:id",
+        element: <FilePage />,
       }
     ],
   },
