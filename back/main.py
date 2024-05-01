@@ -1,7 +1,8 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-from back.services import parse_xml, create_xml_files_table, create_xml_file_info_table, get_all_xml_files
+from back.services import parse_xml, create_xml_files_table, create_xml_file_info_table, get_all_xml_files, \
+	get_file_relationships
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
@@ -28,17 +29,22 @@ def upload_xml():
 			elif file_informaion['source'] is None and file_informaion['target'] is None and len(
 					file_informaion['id']) > 2:
 				create_xml_file_info_table(file_informaion['id'], file_informaion['value'], file_informaion['source'],
-				                           file_informaion['target'], '', 'file_informaionect', id)
+				                           file_informaion['target'], '', 'node', id)
 		return "File uploaded successfully"
 
 	return "Error uploading file"
 
 
-@app.route('/xml_files', methods=['GET'])
+@app.route('/xml-files', methods=['GET'])
 def get_xml_files():
 	rows = get_all_xml_files()
 	files = [{'id': row[0], 'file_name': row[1]} for row in rows]
 	return jsonify(files)
+
+
+@app.route('/get-relationships/<int:xml_file_id>', methods=['GET'])
+def get_relationships(xml_file_id):
+	return jsonify(get_file_relationships(xml_file_id))
 
 
 if __name__ == '__main__':

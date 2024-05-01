@@ -3,6 +3,7 @@ import sqlite3
 
 DB_NAME = 'xml_sapr'
 
+
 def parse_xml(file_contents):
 	root = etree.fromstring(file_contents)
 	elements = []
@@ -19,36 +20,36 @@ def parse_xml(file_contents):
 
 
 def create_xml_files_table(file_name):
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
+	conn = sqlite3.connect(DB_NAME)
+	cursor = conn.cursor()
 
-    cursor.execute('''
+	cursor.execute('''
     CREATE TABLE IF NOT EXISTS xml_files (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         file_name TEXT
     )
     ''')
 
-    cursor.execute('''
+	cursor.execute('''
     INSERT INTO xml_files (file_name) VALUES (?)
     ''', (file_name,))
 
-    conn.commit()
+	conn.commit()
 
-    cursor.execute('SELECT last_insert_rowid()')  # Получение id последней вставленной записи
-    rowid = cursor.fetchone()[0]
+	cursor.execute('SELECT last_insert_rowid()')  # Получение id последней вставленной записи
+	rowid = cursor.fetchone()[0]
 
-    conn.close()
+	conn.close()
 
-    return rowid
+	return rowid
 
 
 def create_xml_file_info_table(id, value, source, target, description, type, file_id):
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
+	conn = sqlite3.connect(DB_NAME)
+	cursor = conn.cursor()
 
-    # Создание таблицы xml_file_info
-    cursor.execute('''
+	# Создание таблицы xml_file_info
+	cursor.execute('''
     CREATE TABLE IF NOT EXISTS xml_file_info (
         id TEXT,
         value TEXT,
@@ -61,22 +62,60 @@ def create_xml_file_info_table(id, value, source, target, description, type, fil
     )
     ''')
 
-    # Вставка данных в таблицу xml_file_info
-    cursor.execute('''
+	# Вставка данных в таблицу xml_file_info
+	cursor.execute('''
     INSERT INTO xml_file_info (id, value, source, target, description, type, xml_file_id) VALUES (?, ?, ?, ?, ?, ?, ?)
-    ''', (id, value, source, target, description, type, file_id))  # Предполагается, что id таблицы xml_files совпадает с переданным id
+    ''', (id, value, source, target, description, type,
+	      file_id))  # Предполагается, что id таблицы xml_files совпадает с переданным id
 
-    conn.commit()
-    conn.close()
+	conn.commit()
+	conn.close()
 
 
 def get_all_xml_files():
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
+	conn = sqlite3.connect(DB_NAME)
+	cursor = conn.cursor()
 
-    cursor.execute('SELECT * FROM xml_files')
-    rows = cursor.fetchall()
+	cursor.execute('SELECT * FROM xml_files')
+	rows = cursor.fetchall()
 
-    conn.close()
+	conn.close()
 
-    return rows
+	return rows
+
+
+def get_file_relationships(xml_file_id):
+	conn = sqlite3.connect(DB_NAME)
+	cursor = conn.cursor()
+
+	cursor.execute(
+		"SELECT id, value, source, target, description, type FROM xml_file_info WHERE type='relationship' AND xml_file_id=?",
+		(xml_file_id,))
+	relationships = cursor.fetchall()
+
+	cursor.execute("SELECT file_name FROM xml_files WHERE id=?", (xml_file_id,))
+	file_name = cursor.fetchone()[0]
+
+	result = []
+	for relationship in relationships:
+		source_id = relationship[2]
+		target_id = relationship[3]
+
+		cursor.execute("SELECT value FROM xml_file_info WHERE id=?", (source_id,))
+		source_value = cursor.fetchone()[0]
+
+		cursor.execute("SELECT value FROM xml_file_info WHERE id=?", (target_id,))
+		target_value = cursor.fetchone()[0]
+
+		result.append({
+			'id': relationship[0],
+			'value': relationship[1],
+			'source_value': source_value,
+			'target_value': target_value,
+			'description': relationship[4],
+			'type': relationship[5],
+		})
+
+	conn.close()
+
+	return {'relationships': result, 'file_name': file_name}

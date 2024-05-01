@@ -22,7 +22,7 @@ export const TablePage = () => {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    $api.get("xml_files").then((res) => {
+    $api.get("xml-files").then((res) => {
       setData(res.data)
     }).finally(() => {
       setIsLoading(false)
@@ -41,7 +41,7 @@ export const TablePage = () => {
   
   return (
     <div className='table-wrapper'>
-      <Table loading={isLoading} columns={columns} dataSource={dataSource} pagination={{ pageSize: 7 }} />
+      <Table loading={isLoading} columns={columns} dataSource={dataSource} pagination={{ pageSize: 6 }} />
     </div>
     
   )
