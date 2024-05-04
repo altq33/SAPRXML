@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useMemo } from 'react'
-import { Table, Button } from "antd";
+import { Table, Button, Flex, Breadcrumb } from "antd";
 import "./TablePage.css"
-  import { $api } from '../../http';
-  import { Link } from 'react-router-dom';
+import { $api } from '../../http';
+import { Link } from 'react-router-dom';
+import { NodeIndexOutlined, ProfileOutlined, TableOutlined } from '@ant-design/icons';
 
   const columns = [
     {
@@ -11,9 +12,9 @@ import "./TablePage.css"
       key: 'fileName',
     },
     {
-      title: 'Связи',
-      dataIndex: 'relationships',
-      key: 'relationships',
+      title: 'Действия',
+      dataIndex: 'actions',
+      key: 'actions',
     },
   ];
 
@@ -34,14 +35,26 @@ export const TablePage = () => {
       return {
         key: el.id,
         fileName: el.file_name,
-        relationships : <Link to={`/file/${el.id}`}><Button size='middle' type='primary'>Перейти к связям</Button></Link>
+        actions : <Flex gap="small">
+          <Link to={`/file/${el.id}`}><Button size='middle' type='primary'>Перейти к связям <NodeIndexOutlined /></Button></Link>
+          <Link to={`/dictionary/${el.id}`}><Button size='middle' type='primary'>Перейти к терминам <ProfileOutlined /></Button></Link>
+        </Flex> 
       }
     })
   }, [data])
   
   return (
     <div className='table-wrapper'>
-      <Table loading={isLoading} columns={columns} dataSource={dataSource} pagination={{ pageSize: 6 }} />
+      <Flex vertical gap="middle">
+        <Breadcrumb 
+          style={{fontSize: "25px"}}
+          items={[
+          { title: `Главная` },
+          { title: 'Таблица файлов'}]} 
+          separator={<TableOutlined  style={{fontSize: "25px"}} />}       
+          />
+        <Table loading={isLoading} columns={columns} dataSource={dataSource} pagination={{ pageSize: 6 }} />
+      </Flex>
     </div>
     
   )

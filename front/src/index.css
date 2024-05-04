@@ -32,3 +32,18 @@ html, body, #root {
 .nav-link:hover {
   color: green;
 }
+
+.link-container {
+  color: white;
+  font-size: 20px;
+  margin-left: auto;
+}
+
+.github-link {
+  color: green;
+}
+
+.github-link:hover {
+  color: white;
+}
+

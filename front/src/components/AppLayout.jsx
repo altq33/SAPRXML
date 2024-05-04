@@ -1,8 +1,9 @@
 import React from 'react';
-import { Layout, Flex } from 'antd';
+import { Layout, Flex, Tag } from 'antd';
 import { NavLink, Outlet, Link } from 'react-router-dom';
 import { ConfigProvider } from 'antd';
 import XMLIcon from "../assets/xml-svgrepo-com.svg?react"
+import { GithubOutlined } from '@ant-design/icons';
 const { Header, Content } = Layout;
 
 const navLinks = [
@@ -18,7 +19,7 @@ export const AppLayout = () => {
       token: {
         // Seed Token
         colorPrimary: 'green',
-        borderRadius: 2,
+        borderRadius: 6,
 
       },
     }}
@@ -33,6 +34,9 @@ export const AppLayout = () => {
               </Flex>         
             </Link>
             {navLinks.map((el) => <NavLink className='nav-link' key={el.key} to={el.link}>{el.label}</NavLink>)}
+            <Flex className='link-container' align="center" gap='small' style={{whiteSpace: 'nowrap'}} >
+              <span style={{whiteSpace: 'nowrap'}}>Made by</span><a className='github-link' href='https://github.com/altq33'>altq33 <GithubOutlined /></a>
+            </Flex>
           </Flex>
       </Header>
       <Content style={{ padding: '0 48px', flex: '1 1 auto' }} >
