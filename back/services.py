@@ -119,3 +119,11 @@ def get_file_relationships(xml_file_id):
 	conn.close()
 
 	return {'relationships': result, 'file_name': file_name}
+
+
+def edit_relationship_by_id(id, value):
+	conn = sqlite3.connect(DB_NAME)
+	cursor = conn.cursor()
+	cursor.execute('UPDATE xml_file_info SET value = ? WHERE id = ?', (value, id))
+	conn.commit()
+	conn.close()

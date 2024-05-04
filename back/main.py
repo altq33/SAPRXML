@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 from back.services import parse_xml, create_xml_files_table, create_xml_file_info_table, get_all_xml_files, \
-	get_file_relationships
+	get_file_relationships, edit_relationship_by_id
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
@@ -35,6 +35,13 @@ def upload_xml():
 	return "Error uploading file"
 
 
+@app.route('/relationship/edit/<string:id>', methods=['PATCH'])
+def edit_relationship(id):
+	value = request.json.get('value')
+	edit_relationship_by_id(id, value)
+	return jsonify(message='XML file info updated successfully')
+
+
 @app.route('/xml-files', methods=['GET'])
 def get_xml_files():
 	rows = get_all_xml_files()
@@ -45,6 +52,7 @@ def get_xml_files():
 @app.route('/get-relationships/<int:xml_file_id>', methods=['GET'])
 def get_relationships(xml_file_id):
 	return jsonify(get_file_relationships(xml_file_id))
+
 
 
 if __name__ == '__main__':

@@ -1,21 +1,21 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { Table, Button } from "antd";
 import "./TablePage.css"
-import { $api } from '../../http';
-import { Link } from 'react-router-dom';
+  import { $api } from '../../http';
+  import { Link } from 'react-router-dom';
 
-const columns = [
-  {
-    title: 'Название файла',
-    dataIndex: 'fileName',
-    key: 'fileName',
-  },
-  {
-    title: 'Связи',
-    dataIndex: 'relationships',
-    key: 'relationships',
-  },
-];
+  const columns = [
+    {
+      title: 'Название файла',
+      dataIndex: 'fileName',
+      key: 'fileName',
+    },
+    {
+      title: 'Связи',
+      dataIndex: 'relationships',
+      key: 'relationships',
+    },
+  ];
 
 export const TablePage = () => {
   const [data, setData] = useState([])

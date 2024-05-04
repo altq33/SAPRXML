@@ -1,6 +1,6 @@
-import React, {useState, useEffect, useMemo } from 'react'
+import React, {useState, useEffect, useMemo, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
-import  { Table, Breadcrumb, Flex } from "antd"
+import  { Table, Breadcrumb, Flex, Modal, Button, Input, Form } from "antd"
 import { $api } from '../../http';
 import { LinkOutlined, ArrowRightOutlined } from '@ant-design/icons';
 const columns = [
@@ -19,12 +19,22 @@ const columns = [
     dataIndex: 'target',
     key: 'target',
   },
+  {
+    title: 'Действия',
+    dataIndex: 'actions',
+    key: 'actions'
+  }
 ];
 
 export const FilePage = () => {
     const [data, setData] = useState({})
     const [isLoading, setIsLoading] = useState(true)
+    const [isEditOpen, setIsEditOpen] = useState(false)
+    const [currendEditRelationship, setCurrentEditRelationship] = useState({})
+    const [isSendLoading, setIsSendLoading] = useState(false)
     const { id } = useParams()
+    const [form] = Form.useForm();
+
   
     useEffect(() => {
       $api.get(`get-relationships/${id}`).then((res) => {
@@ -41,24 +51,82 @@ export const FilePage = () => {
           key: el.id,
           source: el.source_value,
           target: el.target_value,
-          label: <Flex justify='center' gap="small"><ArrowRightOutlined />{el.value}<ArrowRightOutlined /></Flex>
+          label: <Flex justify='center' gap="small"><ArrowRightOutlined />{el.value}<ArrowRightOutlined /></Flex>,
+          actions: <Button type='primary' onClick={() => {
+            setCurrentEditRelationship({
+              id: el.id,
+              source: el.source_value,
+              target: el.target_value,
+              label: el.value
+            })
+            setIsEditOpen(true)
+          }}>Редактировать</Button>
         }
       })
     }, [data, isLoading])
+
+    useEffect(() => {
+      if(currendEditRelationship.label) {
+        form.setFieldValue('label', currendEditRelationship.label)
+      } 
+    }, [currendEditRelationship.label])
+
+    
+
+    const handleSubmit = useCallback(async () => {
+        try {
+          setIsSendLoading(true)
+          const { label } = await form.validateFields()
+          await $api.patch(`relationship/edit/${currendEditRelationship.id}`, {value: label})
+          setData((prev) => {
+            return { ...prev,relationships: prev?.relationships.map(el => {
+            if(el.id === currendEditRelationship.id) {
+              return { ...el, value: label }
+            } 
+            return el
+           })}})
+          setIsEditOpen(false)
+          setCurrentEditRelationship({})
+        } catch (err) {
+          console.error(err)
+        } finally {
+          setIsSendLoading(false)
+        }
+    }, [currendEditRelationship])
     
     return (
-      <div className='table-wrapper'>
-        <Flex vertical gap="middle">
-            <Breadcrumb 
-            style={{fontSize: "25px"}}
-            items={[
-             { title: `Файл ${data.file_name}` },
-             { title: 'Связи'}]}
-             separator={<LinkOutlined style={{fontSize: "25px"}} />} 
-             
-             />
-            <Table loading={isLoading} columns={columns} dataSource={dataSource} pagination={{ pageSize: 6 }} />
-        </Flex>
-      </div>
+      <>
+        <Modal
+        title={`Редактировать ${currendEditRelationship.id}`}
+        open={isEditOpen}
+        confirmLoading={isSendLoading}
+        onCancel={() => {
+          setIsEditOpen(false)
+          setCurrentEditRelationship({})
+        }}
+        onOk={handleSubmit}
+        cancelText='Отмена'
+        >
+          <Form layout="vertical" form={form}>
+            <Flex vertical gap={'small'}>
+              <Form.Item name='label' label='Название связи' colon={false} rules={[{required: true, message: 'Поле обязательно к заполнению!'}]}>
+                <Input />
+              </Form.Item>
+            </Flex>
+          </Form>
+        </Modal>
+        <div className='table-wrapper'>
+          <Flex vertical gap="middle">
+              <Breadcrumb 
+              style={{fontSize: "25px"}}
+              items={[
+              { title: `Файл ${data.file_name}` },
+              { title: 'Связи'}]} 
+              separator={<LinkOutlined style={{fontSize: "25px"}} />}       
+              />
+              <Table loading={isLoading} columns={columns} dataSource={dataSource} pagination={{ pageSize: 6 }} />
+          </Flex>
+        </div>
+      </> 
     )
 }
