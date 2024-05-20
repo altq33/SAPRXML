@@ -18,6 +18,16 @@ html, body, #root {
 }
 
 
+.table-link {
+  color: black;
+  text-decoration: underline;
+}
+
+.table-link:hover {
+  color: green;
+}
+
+
 
 
 .nav-link {

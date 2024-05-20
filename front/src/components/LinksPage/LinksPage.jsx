@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useMemo, useCallback } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { useParams, Link} from 'react-router-dom'
 import  { Table, Breadcrumb, Flex, Modal, Button, Input, Form } from "antd"
 import { $api } from '../../http';
 import { NodeIndexOutlined, ArrowRightOutlined, EditOutlined } from '@ant-design/icons';
@@ -32,26 +32,33 @@ export const LinksPage = () => {
     const [isEditOpen, setIsEditOpen] = useState(false)
     const [currendEditRelationship, setCurrentEditRelationship] = useState({})
     const [isSendLoading, setIsSendLoading] = useState(false)
-    const { id } = useParams()
-    const [searchParams, setSearchParams] = useSearchParams();
+    const { id, termId } = useParams()
     const [form] = Form.useForm();
-    console.log(searchParams.termId)
 
     useEffect(() => {
-      $api.get(`get-relationships/${id}`).then((res) => {
-        setData(res.data)
-      }).finally(() => {
-        setIsLoading(false)
-      })
-    }, [])
+      if(!termId) {
+        $api.get(`get-relationships/${id}`).then((res) => {
+          setData(res.data)
+        }).finally(() => {
+          setIsLoading(false)
+        })
+      } else {
+        $api.get(`get-relationships/${id}/terms/${termId}`).then((res) => {
+          setData(res.data)
+        }).finally(() => {
+          setIsLoading(false)
+        })
+      }
+      
+    }, [termId, id])
   
     const dataSource = useMemo(() => {
       if(isLoading) return []
       return data?.relationships.map((el) => {
         return {
           key: el.id,
-          source: el.source_value,
-          target: el.target_value,
+          source: <Link className='table-link' to={`/links/${id}/terms/${el.source_id}`}>{el.source_value}</Link>,
+          target: <Link className='table-link'  to={`/links/${id}/terms/${el.target_id}`}>{el.target_value}</Link>,
           label: <Flex justify='center' gap="small"><ArrowRightOutlined />{el.value}<ArrowRightOutlined /></Flex>,
           actions: <Button type='primary' onClick={() => {
             setCurrentEditRelationship({
@@ -94,7 +101,18 @@ export const LinksPage = () => {
           setIsSendLoading(false)
         }
     }, [currendEditRelationship])
-    
+
+    const breadcrubmsItems = termId ? [
+      { title: `Файл ${data.file_name ?? 'Загрузка...'}` },
+      {
+        type: 'separator',
+      },
+      { title: `Термин ${data.term?.value  ?? 'Загрузка...'}`},
+      {type: 'separator', separator: <NodeIndexOutlined style={{fontSize: "25px"}} />},
+      { title: 'Связи'}] :  [{ title: `Файл ${data.file_name  ?? 'Загрузка...'}` },
+      {type: 'separator', separator: <NodeIndexOutlined style={{fontSize: "25px"}} />},
+      { title: 'Связи'}]
+
     return (
       <>
         <Modal
@@ -120,10 +138,8 @@ export const LinksPage = () => {
           <Flex vertical gap="middle">
               <Breadcrumb 
               style={{fontSize: "25px"}}
-              items={[
-              { title: `Файл ${data.file_name}` },
-              { title: 'Связи'}]} 
-              separator={<NodeIndexOutlined style={{fontSize: "25px"}} />}       
+              items={breadcrubmsItems}   
+              separator=""    
               />
               <Table loading={isLoading} columns={columns} dataSource={dataSource} pagination={{ pageSize: 6 }} />
           </Flex>

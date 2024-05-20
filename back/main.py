@@ -54,6 +54,11 @@ def get_relationships(xml_file_id):
     return jsonify(get_file_relationships(xml_file_id))
 
 
+@app.route('/get-relationships/<int:xml_file_id>/terms/<string:term_id>', methods=['GET'])
+def get_relationships_term(xml_file_id, term_id):
+    return jsonify(get_file_relationships(xml_file_id, term_id))
+
+
 @app.route('/terms/<int:id>', methods=['GET'])
 def get_terms(id):
     result = get_terms_by_id(id)

@@ -45,28 +45,54 @@ def create_xml_files_table(file_name):
 
 
 def create_xml_file_info_table(id, value, source, target, description, type, file_id):
+    if type == 'node':
+        create_terms_table(id, value, file_id, description)
+    elif type == 'relationship':
+        create_links_table(id, value, source, target, file_id)
+
+
+def create_terms_table(id, value, file_id, description):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
 
-    # Создание таблицы xml_file_info
     cursor.execute('''
-    CREATE TABLE IF NOT EXISTS xml_file_info (
-        id TEXT,
-        value TEXT,
-        source TEXT,
-        target TEXT,
-        description TEXT,
-        type TEXT,
-        xml_file_id INTEGER,
-        FOREIGN KEY (xml_file_id) REFERENCES xml_files(id)
-    )
-    ''')
+      CREATE TABLE IF NOT EXISTS terms (
+          id TEXT,
+          value TEXT,
+          description TEXT,
+          xml_file_id INTEGER,
+          FOREIGN KEY (xml_file_id) REFERENCES xml_files(id)
+      )
+      ''')
 
-    # Вставка данных в таблицу xml_file_info
     cursor.execute('''
-    INSERT INTO xml_file_info (id, value, source, target, description, type, xml_file_id) VALUES (?, ?, ?, ?, ?, ?, ?)
-    ''', (id, value, source, target, description, type,
-          file_id))  # Предполагается, что id таблицы xml_files совпадает с переданным id
+       INSERT INTO terms (id, value,  description, xml_file_id) VALUES (?, ?, ?, ?)
+       ''', (id, value, description, file_id))
+
+    conn.commit()
+    conn.close()
+
+
+def create_links_table(id, value, source, target, file_id):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute('''
+         CREATE TABLE IF NOT EXISTS links (
+             id TEXT,
+             value TEXT,
+             source TEXT,
+             target TEXT,
+             xml_file_id INTEGER,
+             FOREIGN KEY (xml_file_id) REFERENCES xml_files(id)
+             FOREIGN KEY (source) REFERENCES terms(id)
+             FOREIGN KEY (target) REFERENCES terms(id)
+         )  
+         ''')
+
+    cursor.execute('''
+          INSERT INTO links (id, value,  source, target, xml_file_id) VALUES (?, ?, ?, ?, ?)
+          ''', (id, value, source, target, file_id))
 
     conn.commit()
     conn.close()
@@ -84,27 +110,37 @@ def get_all_xml_files():
     return rows
 
 
-def get_file_relationships(xml_file_id):
+def get_file_relationships(xml_file_id, term_id=None):
+    term = []
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
+    if term_id:
+        cursor.execute(
+            "SELECT id, value, source, target FROM links WHERE xml_file_id=? AND (source = ? OR target = ?)",
+            (xml_file_id, term_id, term_id,))
+    else:
+        cursor.execute(
+            "SELECT id, value, source, target FROM links WHERE xml_file_id=?",
+            (xml_file_id,))
 
-    cursor.execute(
-        "SELECT id, value, source, target, description, type FROM xml_file_info WHERE type='relationship' AND xml_file_id=?",
-        (xml_file_id,))
     relationships = cursor.fetchall()
 
     cursor.execute("SELECT file_name FROM xml_files WHERE id=?", (xml_file_id,))
     file_name = cursor.fetchone()[0]
+
+    if term_id:
+        cursor.execute("SELECT id, value, description FROM terms WHERE id=?", (term_id,))
+        term = cursor.fetchone()
 
     result = []
     for relationship in relationships:
         source_id = relationship[2]
         target_id = relationship[3]
 
-        cursor.execute("SELECT value FROM xml_file_info WHERE id=?", (source_id,))
+        cursor.execute("SELECT value, id FROM terms WHERE id=?", (source_id,))
         source_value = cursor.fetchone()[0]
 
-        cursor.execute("SELECT value FROM xml_file_info WHERE id=?", (target_id,))
+        cursor.execute("SELECT value, id FROM terms WHERE id=?", (target_id,))
         target_value = cursor.fetchone()[0]
 
         result.append({
@@ -112,11 +148,13 @@ def get_file_relationships(xml_file_id):
             'value': relationship[1],
             'source_value': source_value,
             'target_value': target_value,
-            'description': relationship[4],
-            'type': relationship[5],
+            'target_id': target_id,
+            'source_id': source_id,
         })
 
     conn.close()
+    if term_id:
+        return {'relationships': result, 'file_name': file_name, 'term': {'id': term[0], 'value': term[1], 'description': term[2]}}
 
     return {'relationships': result, 'file_name': file_name}
 
@@ -124,7 +162,7 @@ def get_file_relationships(xml_file_id):
 def edit_relationship_by_id(id, value):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    cursor.execute('UPDATE xml_file_info SET value = ? WHERE id = ?', (value, id))
+    cursor.execute('UPDATE links SET value = ? WHERE id = ?', (value, id))
     conn.commit()
     conn.close()
 
@@ -132,7 +170,7 @@ def edit_relationship_by_id(id, value):
 def get_terms_by_id(id):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    cursor.execute("SELECT id, value, description FROM xml_file_info WHERE xml_file_id = ? AND  type = 'node'", (id,))
+    cursor.execute("SELECT id, value, description FROM terms WHERE xml_file_id = ?", (id,))
     terms = cursor.fetchall()
     result = []
     for term in terms:
@@ -152,6 +190,6 @@ def get_terms_by_id(id):
 def update_description(id, new_description):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    cursor.execute("UPDATE xml_file_info SET description = ? WHERE id = ?", (new_description, id))
+    cursor.execute("UPDATE terms SET description = ? WHERE id = ?", (new_description, id))
     conn.commit()
     conn.close()

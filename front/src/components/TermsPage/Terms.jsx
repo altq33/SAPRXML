@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useMemo, useCallback } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import  { Table, Breadcrumb, Flex, Modal, Button, Input, Form } from "antd"
 import { $api } from '../../http';
 import { ProfileOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
@@ -44,7 +44,7 @@ export const TermsPage = () => {
       return data?.terms.map((el) => {
         return {
           key: el.id,
-          term: el.term,
+          term:  <Link className='table-link' to={`/links/${id}/terms/${el.id}`}>{el.term}</Link>,
           description: el.description,
           actions: <Button type='primary' onClick={() => {
             setCurrentEditTerm({

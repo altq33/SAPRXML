@@ -29,6 +29,11 @@ const router = createBrowserRouter([
         path: "/links/:id/",
         element: <LinksPage />,
       },
+
+      {
+        path: "/links/:id/terms/:termId",
+        element: <LinksPage />,
+      },
       {
         path: "/dictionary/:id",
         element: <TermsPage />,
