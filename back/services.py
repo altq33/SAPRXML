@@ -132,7 +132,7 @@ def edit_relationship_by_id(id, value):
 def get_terms_by_id(id):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    cursor.execute("SELECT id, value, description FROM xml_file_info WHERE xml_file_id = ?", (id,))
+    cursor.execute("SELECT id, value, description FROM xml_file_info WHERE xml_file_id = ? AND  type = 'node'", (id,))
     terms = cursor.fetchall()
     result = []
     for term in terms:
