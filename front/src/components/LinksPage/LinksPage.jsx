@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useMemo, useCallback } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import  { Table, Breadcrumb, Flex, Modal, Button, Input, Form } from "antd"
 import { $api } from '../../http';
 import { NodeIndexOutlined, ArrowRightOutlined, EditOutlined } from '@ant-design/icons';
@@ -26,16 +26,17 @@ const columns = [
   }
 ];
 
-export const FilePage = () => {
+export const LinksPage = () => {
     const [data, setData] = useState({})
     const [isLoading, setIsLoading] = useState(true)
     const [isEditOpen, setIsEditOpen] = useState(false)
     const [currendEditRelationship, setCurrentEditRelationship] = useState({})
     const [isSendLoading, setIsSendLoading] = useState(false)
     const { id } = useParams()
+    const [searchParams, setSearchParams] = useSearchParams();
     const [form] = Form.useForm();
+    console.log(searchParams.termId)
 
-  
     useEffect(() => {
       $api.get(`get-relationships/${id}`).then((res) => {
         setData(res.data)

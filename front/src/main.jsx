@@ -8,7 +8,7 @@ import {
 import './index.css'
 import { AppLayout } from './components/AppLayout.jsx';
 import { TablePage } from './components/TablePage/TablePage.jsx';
-import { FilePage } from './components/FilePage/FilePage.jsx';
+import { LinksPage } from './components/LinksPage/LinksPage.jsx';
 import { TermsPage } from './components/TermsPage/Terms.jsx';
 
 const router = createBrowserRouter([
@@ -26,8 +26,8 @@ const router = createBrowserRouter([
         element: <TablePage />,
       },
       {
-        path: "/file/:id",
-        element: <FilePage />,
+        path: "/links/:id/",
+        element: <LinksPage />,
       },
       {
         path: "/dictionary/:id",

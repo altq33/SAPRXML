@@ -36,7 +36,7 @@ export const TablePage = () => {
         key: el.id,
         fileName: el.file_name,
         actions : <Flex gap="small">
-          <Link to={`/file/${el.id}`}><Button size='middle' type='primary'>Перейти к связям <NodeIndexOutlined /></Button></Link>
+          <Link to={`/links/${el.id}`}><Button size='middle' type='primary'>Перейти к связям <NodeIndexOutlined /></Button></Link>
           <Link to={`/dictionary/${el.id}`}><Button size='middle' type='primary'>Перейти к терминам <ProfileOutlined /></Button></Link>
         </Flex> 
       }
