@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useMemo, useCallback } from 'react'
 import { useParams, Link} from 'react-router-dom'
-import  { Table, Breadcrumb, Flex, Modal, Button, Input, Form } from "antd"
+import  { Table, Breadcrumb, Flex, Modal, Button, Input, Form, Descriptions } from "antd"
 import { $api } from '../../http';
 import { NodeIndexOutlined, ArrowRightOutlined, EditOutlined } from '@ant-design/icons';
 const columns = [
@@ -34,7 +34,7 @@ export const LinksPage = () => {
     const [isSendLoading, setIsSendLoading] = useState(false)
     const { id, termId } = useParams()
     const [form] = Form.useForm();
-
+    
     useEffect(() => {
       if(!termId) {
         $api.get(`get-relationships/${id}`).then((res) => {
@@ -78,6 +78,24 @@ export const LinksPage = () => {
         form.setFieldValue('label', currendEditRelationship.label)
       } 
     }, [currendEditRelationship.label])
+
+    const descriptionItems = useMemo(() => [
+      {
+        key: '1',
+        label: 'Описание',
+        children: <p>{ isLoading ? 'Загрузка...' : data.term?.description || 'Описание отсутствует'}</p>,
+      },
+      {
+        key: '2',
+        label: 'ID',
+        children: <p>{ isLoading ? 'Загрузка...' : data.term?.id || 'ID отсутствует'}</p>,
+      },
+      {
+        key: '3',
+        label: 'Значение',
+        children: <p>{ isLoading ? 'Загрузка...' : data.term?.value || 'Значение отсутствует'}</p>,
+      },
+    ], [isLoading, data.term?.description, data.term?.id, data.term?.value])
 
     
 
@@ -141,6 +159,7 @@ export const LinksPage = () => {
               items={breadcrubmsItems}   
               separator=""    
               />
+              {termId && <Descriptions style={{maxWidth: '850px'}} title="Информация" items={descriptionItems}  labelStyle={{color: 'green'}} size="default" />}  
               <Table loading={isLoading} columns={columns} dataSource={dataSource} pagination={{ pageSize: 6 }} />
           </Flex>
         </div>
