@@ -8,7 +8,8 @@ const { Header, Content } = Layout;
 
 const navLinks = [
   {key: 0, label: 'Главная', link: '/'},
-  {key: 1, label: 'Таблица загруженных файлов', link: '/diagrams-table'}
+  {key: 1, label: 'Таблица загруженных файлов', link: '/diagrams-table'},
+  {key: 2, label: 'Словарь онтологии', link: '/ontology'}
 ]
 
 export const AppLayout = () => {

@@ -51,6 +51,79 @@ def create_xml_file_info_table(id, value, source, target, description, type, fil
         create_links_table(id, value, source, target, file_id)
 
 
+def create_ontology_table():
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute('''
+              CREATE TABLE IF NOT EXISTS ontology (
+                  name TEXT PRIMARY KEY,
+                  value_for_source TEXT,
+                  value_for_target TEXT
+              )
+              ''')
+
+    conn.commit()
+    conn.close()
+
+
+def add_ontology(name, value_for_source, value_for_target):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    create_ontology_table()
+    cursor.execute('''
+          CREATE TABLE IF NOT EXISTS ontology (
+              name TEXT PRIMARY KEY,
+              value_for_source TEXT,
+              value_for_target TEXT
+          )
+          ''')
+
+    cursor.execute('''
+       INSERT INTO ontology (name, value_for_source,  value_for_target) VALUES (?, ?, ?)
+       ''', (name, value_for_source, value_for_target))
+
+    conn.commit()
+    conn.close()
+
+
+def update_ontology(name, new_name, new_value_for_source, new_value_for_target):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    create_ontology_table()
+    cursor.execute('''
+       UPDATE ontology
+       SET name = ?,
+           value_for_source = ?,
+           value_for_target = ?
+       WHERE name = ?
+       ''', (new_name, new_value_for_source, new_value_for_target, name))
+
+    conn.commit()
+    conn.close()
+
+
+def delete_ontology_by_name(name):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    create_ontology_table()
+    cursor.execute('''
+       DELETE FROM ontology
+       WHERE name = ?
+       ''', (name,))
+
+    conn.commit()
+    conn.close()
+
+
+def get_all_ontology():
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    create_ontology_table()
+    cursor.execute('SELECT * FROM ontology')
+    rows = cursor.fetchall()
+    return rows
+
+
 def create_terms_table(id, value, file_id, description):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
@@ -115,6 +188,7 @@ def get_file_relationships(xml_file_id, term_id=None):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     if term_id:
+        create_ontology_table()
         cursor.execute(
             "SELECT id, value, source, target FROM links WHERE xml_file_id=? AND (source = ? OR target = ?)",
             (xml_file_id, term_id, term_id,))
@@ -136,6 +210,12 @@ def get_file_relationships(xml_file_id, term_id=None):
     for relationship in relationships:
         source_id = relationship[2]
         target_id = relationship[3]
+        relationship_value = relationship[1]
+        ontology = []
+        if term_id:
+            cursor.execute("SELECT name, value_for_source, value_for_target FROM ontology WHERE name=?",
+                           (relationship_value,))
+            ontology = cursor.fetchone()
 
         cursor.execute("SELECT value, id FROM terms WHERE id=?", (source_id,))
         source_value = cursor.fetchone()[0]
@@ -143,9 +223,16 @@ def get_file_relationships(xml_file_id, term_id=None):
         cursor.execute("SELECT value, id FROM terms WHERE id=?", (target_id,))
         target_value = cursor.fetchone()[0]
 
+        if ontology and term_id:
+            if source_id == term_id:
+                relationship_value = ontology[1]
+            elif target_id == term_id:
+                relationship_value = ontology[2]
+                source_value, target_value = target_value, source_value
+
         result.append({
             'id': relationship[0],
-            'value': relationship[1],
+            'value': relationship_value,
             'source_value': source_value,
             'target_value': target_value,
             'target_id': target_id,
@@ -154,7 +241,8 @@ def get_file_relationships(xml_file_id, term_id=None):
 
     conn.close()
     if term_id:
-        return {'relationships': result, 'file_name': file_name, 'term': {'id': term[0], 'value': term[1], 'description': term[2]}}
+        return {'relationships': result, 'file_name': file_name,
+                'term': {'id': term[0], 'value': term[1], 'description': term[2]}}
 
     return {'relationships': result, 'file_name': file_name}
 

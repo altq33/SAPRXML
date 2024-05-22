@@ -10,6 +10,7 @@ import { AppLayout } from './components/AppLayout.jsx';
 import { TablePage } from './components/TablePage/TablePage.jsx';
 import { LinksPage } from './components/LinksPage/LinksPage.jsx';
 import { TermsPage } from './components/TermsPage/Terms.jsx';
+import { OntologyPage } from './components/OntologyPage/OntologyPage.jsx';
 
 const router = createBrowserRouter([
   {
@@ -37,6 +38,10 @@ const router = createBrowserRouter([
       {
         path: "/dictionary/:id",
         element: <TermsPage />,
+      },
+      {
+        path: "/ontology",
+        element: <OntologyPage />,
       }
     ],
   },
