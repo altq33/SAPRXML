@@ -30,7 +30,7 @@ export const OntologyPage = () => {
     const [data, setData] = useState({})
     const [isLoading, setIsLoading] = useState(true)
     const [isEditOpen, setIsEditOpen] = useState(false)
-    const [currendEditData, setCurrentEditData] = useState({})
+    const [currentEditData, setCurrentEditData] = useState({})
     const [isSendLoading, setIsSendLoading] = useState(false)
     const [isAddLoading, setIsAddLoading] = useState(false)
     const [mode, setMode] = useState('')
@@ -69,21 +69,21 @@ export const OntologyPage = () => {
     }, [data, isLoading])
 
     useEffect(() => {
-      if(currendEditData.name && currendEditData.valueForSource && currendEditData.valueForTarget) {
-        form.setFieldValue('name', currendEditData.name)
-        form.setFieldValue('valueForSource', currendEditData.valueForSource)
-        form.setFieldValue('valueForTarget', currendEditData.valueForTarget)
+      if(currentEditData.name && currentEditData.valueForSource && currentEditData.valueForTarget) {
+        form.setFieldValue('name', currentEditData.name)
+        form.setFieldValue('valueForSource', currentEditData.valueForSource)
+        form.setFieldValue('valueForTarget', currentEditData.valueForTarget)
       } 
-    }, [currendEditData.name, currendEditData.valueForSource, currendEditData.valueForTarget])
+    }, [currentEditData.name, currentEditData.valueForSource, currentEditData.valueForTarget])
 
     const handleSubmit = useCallback(async () => {
         try {
           setIsSendLoading(true)
           const { name, valueForSource, valueForTarget } = await form.validateFields()
-          await $api.patch(`/ontology/${currendEditData.name}`, {name, value_for_target: valueForTarget, value_for_source: valueForSource})
+          await $api.patch(`/ontology/${currentEditData.name}`, {name, value_for_target: valueForTarget, value_for_source: valueForSource})
           setData((prev) => {
             return prev.map((el) => {
-                if(el.name == currendEditData.name) {
+                if(el.name == currentEditData.name) {
                     return {name, value_for_target: valueForTarget, value_for_source: valueForSource}
                 }
                 return el
@@ -97,7 +97,7 @@ export const OntologyPage = () => {
         } finally {
           setIsSendLoading(false)
         }
-    }, [currendEditData])
+    }, [currentEditData])
 
     const handleAdd = useCallback(async () => {
         try {
@@ -120,7 +120,7 @@ export const OntologyPage = () => {
     return (
       <>
         <Modal
-        title={mode === 'edit' ? `Редактировать ${currendEditData.name}` : 'Добавить запись'}
+        title={mode === 'edit' ? `Редактировать ${currentEditData.name}` : 'Добавить запись'}
         open={isEditOpen}
         confirmLoading={mode === 'edit' ? isSendLoading : isAddLoading}
         onCancel={() => {
@@ -149,7 +149,7 @@ export const OntologyPage = () => {
                 <Breadcrumb 
                 style={{fontSize: "25px"}}
                 items={[
-                { title: `Онтология` },
+                { title: `Типы связей` },
                 { title: 'Словарь'}]} 
                 separator={<SwapOutlined style={{fontSize: "25px"}}/>}       
                 />

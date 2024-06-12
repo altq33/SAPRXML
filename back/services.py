@@ -229,6 +229,7 @@ def get_file_relationships(xml_file_id, term_id=None):
             elif target_id == term_id:
                 relationship_value = ontology[2]
                 source_value, target_value = target_value, source_value
+                target_id, source_id = source_id, target_id
 
         result.append({
             'id': relationship[0],

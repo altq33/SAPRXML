@@ -40,7 +40,7 @@ const router = createBrowserRouter([
         element: <TermsPage />,
       },
       {
-        path: "/ontology",
+        path: "/link-types",
         element: <OntologyPage />,
       }
     ],

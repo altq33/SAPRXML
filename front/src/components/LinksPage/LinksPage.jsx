@@ -2,7 +2,7 @@ import React, {useState, useEffect, useMemo, useCallback } from 'react'
 import { useParams, Link} from 'react-router-dom'
 import  { Table, Breadcrumb, Flex, Modal, Button, Input, Form, Descriptions } from "antd"
 import { $api } from '../../http';
-import { NodeIndexOutlined, ArrowRightOutlined, EditOutlined } from '@ant-design/icons';
+import { NodeIndexOutlined, ArrowRightOutlined, ArrowLeftOutlined, EditOutlined } from '@ant-design/icons';
 const columns = [
   {
     title: 'Источник',
@@ -57,9 +57,15 @@ export const LinksPage = () => {
       return data?.relationships.map((el) => {
         return {
           key: el.id,
-          source: <Link className='table-link' to={`/links/${id}/terms/${el.source_id}`}>{el.source_value}</Link>,
-          target: <Link className='table-link'  to={`/links/${id}/terms/${el.target_id}`}>{el.target_value}</Link>,
-          label: <Flex justify='center' gap="small"><ArrowRightOutlined />{el.value}<ArrowRightOutlined /></Flex>,
+          source: termId == el.target_id ?  <Link className='table-link'  to={`/links/${id}/terms/${el.target_id}`}>{el.target_value}</Link> : <Link className='table-link' to={`/links/${id}/terms/${el.source_id}`}>{el.source_value}</Link>,
+          target:     termId == el.target_id ? <Link className='table-link' to={`/links/${id}/terms/${el.source_id}`}>{el.source_value}</Link> :
+          <Link className='table-link'  to={`/links/${id}/terms/${el.target_id}`}>{el.target_value}</Link>,
+          label:
+          termId == el.target_id ?   
+          <Flex justify='center' gap="small"><ArrowLeftOutlined />{el.value}<ArrowLeftOutlined />
+          </Flex> 
+          :
+          <Flex justify='center' gap="small"><ArrowRightOutlined />{el.value}<ArrowRightOutlined /></Flex>,
           actions: <Button type='primary' onClick={() => {
             setCurrentEditRelationship({
               id: el.id,
